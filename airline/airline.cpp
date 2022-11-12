@@ -12,6 +12,7 @@
 #define NumOfVer 80
 using namespace std;
 vector<int> answerTable;
+double epsilon = 0;
 bool cmp1(int a, int b) { return a < b; }
 using VStatus = enum { UNDISCOVERED,
                        DISCOVERED,
@@ -137,7 +138,7 @@ public:
     void BFS_g(int v, int &clock);
     void dfs(int s);
     void DFS(int v, int &clock);
-    void BFS1(int v, int s);
+    int BFS1(int v, int s);
     void DFS1(int v, int s, int times);
     void digkstra(int v, int s);
 };
@@ -215,9 +216,9 @@ void GraphMatrix::digkstra(int v, int s)
                 {
                     // for (int i = 0; i < 80; i++)
                     // {
-                    //     cout << i << ':' << path[i] << '|';
+                    //     std::cout << i << ':' << path[i] << '|';
                     // }
-                    // cout << endl;
+                    // std::cout << endl;
                     min = (aim.Endtime - E[v][i].startTime[j]) < min ? (aim.Endtime - E[v][i].startTime[j]) : min;
                     priQueue.pop();
                     continue;
@@ -244,11 +245,11 @@ void GraphMatrix::digkstra(int v, int s)
     }
     if (min != INT_MAX)
     {
-        cout << min << ' ';
+        std::cout << min << ' ';
     }
     else
     {
-        cout << "-1" << ' ';
+        std::cout << "-1" << ' ';
     }
 }
 
@@ -326,7 +327,7 @@ void GraphMatrix::DFS(int v, int &clock)
 }
 
 // 2.2 used
-void GraphMatrix::BFS1(int v, int s)
+int GraphMatrix::BFS1(int v, int s)
 {
     queue<int> Q;
     int times = 0;
@@ -343,7 +344,7 @@ void GraphMatrix::BFS1(int v, int s)
                 status(u) = DISCOVERED;
                 Q.push(u);
                 parent(u) = v;
-                // cout << u << '|';
+                // std::cout << u << '|';
                 if (u == s)
                 {
                     while (u != 0)
@@ -351,14 +352,12 @@ void GraphMatrix::BFS1(int v, int s)
                         u = V[u].parent;
                         times++;
                     }
-                    cout << times - 4 << ' ';
-                    break;
+                    return times - 4;
                 }
             }
         }
     }
-    if (times == 0)
-        cout << "-1" << ' ';
+    return INT_MAX;
 }
 
 // 2.3 used
@@ -395,6 +394,7 @@ struct verx
     int minFee;
     int minTimes;
     int waitTime;
+    int value;
     vector<int> passway;
     vector<edge> edgestart;
     bool operator<(const verx &a)
@@ -405,7 +405,7 @@ struct verx
     {
         return minTimes < a.minTimes;
     }
-    verx(int t = 0, int p = 0, int f = 0, int mt = 0, int wt = 0) : time(t), place(p), minFee(f), minTimes(mt), waitTime(wt) {}
+    verx(int t = 0, int p = 0, int f = INT_MAX, int mt = INT_MAX, int wt = INT_MAX, int vl = INT_MAX) : time(t), place(p), minFee(f), minTimes(mt), waitTime(wt), value(vl) {}
 };
 vector<verx> Verx[NumOfVer];
 struct edge
@@ -456,8 +456,8 @@ struct edge
                     }
                     else
                     {
-                        cout << "error 1!";
-                        exit(-1);
+                        std::cout << "error 1!";
+                        std::exit(-1);
                     }
                 }
             }
@@ -494,8 +494,8 @@ struct edge
 
                     else
                     {
-                        cout << "error 2!";
-                        exit(-1);
+                        std::cout << "error 2!";
+                        std::exit(-1);
                     }
                 }
             }
@@ -533,11 +533,14 @@ struct cmpTimeswithWait : verx
 {
     bool operator()(const verx &a, const verx &b)
     {
-        if (a.minTimes != b.minTimes)
-        {
-            return a.minTimes > b.minTimes;
-        }
-        return a.waitTime > b.waitTime;
+        // if (a.minTimes != b.minTimes)
+        // {
+        //     return a.minTimes > b.minTimes;
+        // }
+        // return a.waitTime > b.waitTime;
+        if (a.value != b.value)
+            return a.value > b.value;
+        return a.minTimes > b.minTimes;
     }
 };
 struct cmpFeewithWait : verx
@@ -549,6 +552,9 @@ struct cmpFeewithWait : verx
             return a.minFee > b.minFee;
         }
         return a.waitTime > b.waitTime;
+        // if (a.value != b.value)
+        //     return a.value > b.value;
+        // return a.minFee > b.minFee;
     }
 };
 priority_queue<verx, vector<verx>, cmpTimes> save1;
@@ -595,25 +601,27 @@ void digkstra(int s, int v, int k, int model, int src1, int src2)
     while (!save1.empty())
     {
         temp1 = save1.top();
+        // std::cout << temp1.minTimes << '|';
         save1.pop();
         if (temp1.place == v)
         {
+            // cout << temp1.minTimes << '|';
             hasAnswer = true;
-            if (temp1.minTimes >= k)
+            if (temp1.minTimes > k)
             {
-                cout << "-1" << endl;
+                std::cout << "-1" << endl;
                 return;
             }
             for (int p = 0; p < temp1.passway.size(); p++)
             {
-                cout << temp1.passway[p] << ' ';
+                std::cout << temp1.passway[p] << ' ';
             }
-            cout << endl;
+            std::cout << endl;
             return;
         }
         for (auto i : temp1.edgestart)
         {
-            //  cout << temp1.time << "->" << i.endTime << " is " << Verx[i.endplace][i.endPlace].minTimes << '|';
+            //  std::cout << temp1.time << "->" << i.endTime << " is " << Verx[i.endplace][i.endPlace].minTimes << '|';
 
             if (model == 2 && (Verx[i.endplace][i.endPlace].time < src1 || Verx[i.endplace][i.endPlace].time > src2))
             {
@@ -642,7 +650,7 @@ void digkstra(int s, int v, int k, int model, int src1, int src2)
                 if (i.flightID)
                     Verx[i.endplace][i.endPlace].passway.push_back(i.flightID);
                 save1.push(Verx[i.endplace][i.endPlace]);
-                // cout << Verx[i.endplace][i.endPlace].minTimes << '|';
+                // std::cout << Verx[i.endplace][i.endPlace].minTimes << '|';
             }
         }
     }
@@ -693,15 +701,15 @@ void digkstra(int s, int v, int model, int src1, int src2)
             hasAnswer = true;
             for (int p = 0; p < temp1.passway.size(); p++)
             {
-                cout << temp1.passway[p] << ' ';
+                std::cout << temp1.passway[p] << ' ';
             }
-            cout << endl;
-            cout << temp1.minFee << endl;
+            std::cout << endl;
+            std::cout << temp1.minFee << endl;
             return;
         }
         for (auto i : temp1.edgestart)
         {
-            //  cout << temp1.time << "->" << i.endTime << " is " << Verx[i.endplace][i.endPlace].minTimes << '|';
+            //  std::cout << temp1.time << "->" << i.endTime << " is " << Verx[i.endplace][i.endPlace].minTimes << '|';
             if (model == 2 && (Verx[i.endplace][i.endPlace].time < src1 || Verx[i.endplace][i.endPlace].time > src2))
             {
                 continue;
@@ -729,7 +737,7 @@ void digkstra(int s, int v, int model, int src1, int src2)
                 if (i.flightID)
                     Verx[i.endplace][i.endPlace].passway.push_back(i.flightID);
                 save2.push(Verx[i.endplace][i.endPlace]);
-                // cout << Verx[i.endplace][i.endPlace].minTimes << '|';
+                // std::cout << Verx[i.endplace][i.endPlace].minTimes << '|';
             }
         }
     }
@@ -748,6 +756,9 @@ void digkstra(int s, int v, int waitTime)
         {
             j.minFee = INT_MAX;
             j.minTimes = INT_MAX;
+            j.passway.clear();
+            j.waitTime = INT_MAX;
+            j.value = INT_MAX;
         }
     }
     for (auto i : Verx[s])
@@ -757,6 +768,7 @@ void digkstra(int s, int v, int waitTime)
             if (j.flightID)
             {
                 Verx[j.endplace][j.endPlace].minFee = j.fee;
+                Verx[j.endplace][j.endPlace].waitTime = 0;
                 Verx[j.endplace][j.endPlace].passway.push_back(j.flightID);
                 save4.push(Verx[j.endplace][j.endPlace]);
             }
@@ -766,43 +778,47 @@ void digkstra(int s, int v, int waitTime)
     {
         temp1 = save4.top();
         save4.pop();
+        // if (temp1.place == 49 && temp1.time == 3815)
+        // {
+        //     cout << temp1.waitTime << '|';
+        // }
+        // cout << temp1.place << '|';
         if (temp1.waitTime > waitTime)
         {
             continue;
         }
         if (temp1.place == v)
         {
+            // cout << temp1.waitTime << '|';
             hasAnswer = true;
             for (int p = 0; p < temp1.passway.size(); p++)
             {
-                cout << temp1.passway[p] << ' ';
+                std::cout << temp1.passway[p] << ' ';
             }
-            cout << endl;
-            cout << temp1.minFee << endl;
+            std::cout << endl;
+            std::cout << temp1.minFee << endl;
             return;
         }
         for (auto i : temp1.edgestart)
         {
-            //  cout << temp1.time << "->" << i.endTime << " is " << Verx[i.endplace][i.endPlace].minTimes << '|';
+            //  std::cout << temp1.time << "->" << i.endTime << " is " << Verx[i.endplace][i.endPlace].minTimes << '|';
             int temp2 = Verx[i.endplace][i.endPlace].minFee;
             int temp3 = Verx[i.endplace][i.endPlace].waitTime;
             if (i.model == 9)
             {
-                Verx[i.endplace][i.endPlace].minFee = min(temp1.minFee, Verx[i.endplace][i.endPlace].minFee);
-                if (temp2 > temp1.minFee)
+
+                if (Verx[i.endplace][i.endPlace].minFee > temp1.minFee || Verx[i.endplace][i.endPlace].waitTime > temp1.waitTime + Verx[i.endplace][i.endPlace].time - temp1.time)
                 {
+                    Verx[i.endplace][i.endPlace].minFee = temp1.minFee + i.fee;
                     Verx[i.endplace][i.endPlace].waitTime = temp1.waitTime + Verx[i.endplace][i.endPlace].time - temp1.time;
-                }
-                else if (temp2 == temp1.minFee)
-                {
-                    Verx[i.endplace][i.endPlace].waitTime = min(temp1.waitTime + Verx[i.endplace][i.endPlace].time - temp1.time, Verx[i.endplace][i.endPlace].waitTime);
                 }
             }
             else
             {
                 Verx[i.endplace][i.endPlace].minFee = temp1.minFee + i.fee;
+                Verx[i.endplace][i.endPlace].waitTime = temp1.waitTime;
             }
-            if (Verx[i.endplace][i.endPlace].minFee != temp2 || temp3 != Verx[i.endplace][i.endPlace].waitTime)
+            if (Verx[i.endplace][i.endPlace].minFee != temp2 || Verx[i.endplace][i.endPlace].waitTime != temp3)
             {
                 Verx[i.endplace][i.endPlace].passway.clear();
                 for (auto m : temp1.passway)
@@ -812,7 +828,6 @@ void digkstra(int s, int v, int waitTime)
                 if (i.flightID)
                     Verx[i.endplace][i.endPlace].passway.push_back(i.flightID);
                 save4.push(Verx[i.endplace][i.endPlace]);
-                // cout << Verx[i.endplace][i.endPlace].minTimes << '|';
             }
         }
     }
@@ -820,6 +835,17 @@ void digkstra(int s, int v, int waitTime)
 
 void digkstra(int s, int v, int k, int waitTime)
 {
+    for (int i = 0; i < NumOfVer; i++)
+    {
+        for (auto j : Verx[i])
+        {
+            j.minFee = INT_MAX;
+            j.minTimes = INT_MAX;
+            j.passway.clear();
+            j.value = INT_MAX;
+            j.waitTime = INT_MAX;
+        }
+    }
     while (!save3.empty())
     {
         save3.pop();
@@ -832,6 +858,7 @@ void digkstra(int s, int v, int k, int waitTime)
             j.minFee = INT_MAX;
             j.minTimes = INT_MAX;
             j.waitTime = 0;
+            j.value = INT_MAX;
         }
     }
     for (auto i : Verx[s])
@@ -840,12 +867,21 @@ void digkstra(int s, int v, int k, int waitTime)
         {
             if (j.flightID)
             {
+                for (auto m : Verx[j.endplace][j.endPlace].passway)
+                {
+                    if (m == j.flightID)
+                    {
+                        continue;
+                    }
+                }
                 Verx[j.endplace][j.endPlace].minTimes = 0;
+                Verx[j.endplace][j.endPlace].waitTime = 0;
+                Verx[j.endplace][j.endPlace].value = 0;
                 Verx[j.endplace][j.endPlace].passway.push_back(j.flightID);
                 save3.push(Verx[j.endplace][j.endPlace]);
                 // if (j.flightID == 83)
                 // {
-                //     cout << j.endplace << '|' << j.endTime << endl;
+                //     std::cout << j.endplace << '|' << j.endTime << endl;
                 // }
             }
         }
@@ -853,62 +889,72 @@ void digkstra(int s, int v, int k, int waitTime)
     while (!save3.empty())
     {
         temp1 = save3.top();
+        // cout << temp1.waitTime << '|';
         save3.pop();
-        // cout << temp1.minTimes << '|';
-
+        // if (temp1.place == 49 && temp1.time == 3835 && epsilon == 0)
+        // {
+        //     cout << temp1.waitTime << '|' << temp1.minTimes << endl;
+        //     for (auto m : temp1.edgestart)
+        //     {
+        //         cout << m.flightID << '|';
+        //     }
+        //     cout << endl;
+        // }
+        // std::cout << temp1.minTimes << '|';
         if (temp1.waitTime > waitTime)
-        {
             continue;
-        }
+        if (temp1.minTimes >= k)
+            continue;
         if (temp1.place == v)
         {
-            if (temp1.minTimes > k)
-            {
-                cout << "-1" << endl;
-                return;
-            }
-            if (temp1.waitTime > waitTime)
-            {
-                continue;
-            }
+            // cout << temp1.minTimes << '|';
             hasAnswer = true;
+            // cout << epsilon << endl;
             for (int p = 0; p < temp1.passway.size(); p++)
             {
-                cout << temp1.passway[p] << ' ';
+                if (p != 0 && temp1.passway[p] == temp1.passway[0])
+                    continue;
+                std::cout << temp1.passway[p] << ' ';
             }
-            cout << endl;
-            // cout << temp1.waitTime << '|';
+            std::cout << endl;
+            // std::cout << temp1.waitTime << '|';
             return;
         }
         for (auto i : temp1.edgestart)
         {
-            //  cout << temp1.time << "->" << i.endTime << " is " << Verx[i.endplace][i.endPlace].minTimes << '|';
-            int temp2 = Verx[i.endplace][i.endPlace].minTimes;
-            int temp3 = Verx[i.endplace][i.endPlace].waitTime;
+            //  std::cout << temp1.time << "->" << i.endTime << " is " << Verx[i.endplace][i.endPlace].minTimes << '|';
+            int temp2 = Verx[i.endplace][i.endPlace].value;
 
             if (i.model == 9)
             {
-
-                Verx[i.endplace][i.endPlace].minTimes = min(temp1.minTimes, Verx[i.endplace][i.endPlace].minTimes);
-                if (temp2 > temp1.minTimes)
+                // cout << Verx[i.endplace][i.endPlace].value << '|';
+                if (Verx[i.endplace][i.endPlace].value > temp1.value + (Verx[i.endplace][i.endPlace].time - temp1.time) * (100 - epsilon) / 100)
                 {
+                    Verx[i.endplace][i.endPlace].minTimes = temp1.minTimes;
                     Verx[i.endplace][i.endPlace].waitTime = temp1.waitTime + Verx[i.endplace][i.endPlace].time - temp1.time;
+                    Verx[i.endplace][i.endPlace].value = Verx[i.endplace][i.endPlace].minTimes * epsilon + Verx[i.endplace][i.endPlace].waitTime * (100 - epsilon) / 100;
                 }
-                else if (temp2 == temp1.minTimes)
-                {
-                    Verx[i.endplace][i.endPlace].waitTime = min(temp1.waitTime + Verx[i.endplace][i.endPlace].time - temp1.time, Verx[i.endplace][i.endPlace].waitTime);
-                    // if (i.endplace == 50 && i.endTime == 2560)
-                    // {
-                    //     cout << Verx[i.endplace][i.endPlace].waitTime << '|';
-                    // }
-                }
+                // Verx[i.endplace][i.endPlace].minTimes = min(temp1.minTimes, Verx[i.endplace][i.endPlace].minTimes);
+                // if (temp2 > temp1.minTimes)
+                // {
+                //     Verx[i.endplace][i.endPlace].waitTime = temp1.waitTime + Verx[i.endplace][i.endPlace].time - temp1.time;
+                // }
+                // else if (temp2 == temp1.minTimes)
+                // {
+                //     Verx[i.endplace][i.endPlace].waitTime = min(temp1.waitTime + Verx[i.endplace][i.endPlace].time - temp1.time, Verx[i.endplace][i.endPlace].waitTime);
+                //     // if (i.endplace == 50 && i.endTime == 2560)
+                //     // {
+                //     //     std::cout << Verx[i.endplace][i.endPlace].waitTime << '|';
+                //     // }
+                // }
             }
             else
             {
                 Verx[i.endplace][i.endPlace].minTimes = temp1.minTimes + 1;
                 Verx[i.endplace][i.endPlace].waitTime = temp1.waitTime;
+                Verx[i.endplace][i.endPlace].value = (temp1.minTimes + 1) * epsilon + temp1.waitTime * (100 - epsilon) / 100;
             }
-            if (Verx[i.endplace][i.endPlace].minTimes != temp2 || Verx[i.endplace][i.endPlace].waitTime < temp3)
+            if (Verx[i.endplace][i.endPlace].value != temp2)
             {
                 Verx[i.endplace][i.endPlace].passway.clear();
                 for (auto m : temp1.passway)
@@ -919,7 +965,7 @@ void digkstra(int s, int v, int k, int waitTime)
                     Verx[i.endplace][i.endPlace].passway.push_back(i.flightID);
                 save3.push(Verx[i.endplace][i.endPlace]);
 
-                // cout << Verx[i.endplace][i.endPlace].minTimes << '|';
+                // std::cout << Verx[i.endplace][i.endPlace].minTimes << '|';
             }
         }
     }
@@ -949,10 +995,10 @@ int main()
 {
     GraphMatrix graph;
     ifstream fin("data.csv");
-    freopen("output.txt", "w", stdout);
+    // freopen("output.txt", "w", stdout);
 
     string intmp;
-    getline(fin, intmp);
+    std::getline(fin, intmp);
     node Node;
     Node.next = nullptr;
     Node.parent = nullptr;
@@ -961,35 +1007,35 @@ int main()
     {
         graph.GE.push_back(Node);
     }
-    while (getline(fin, intmp))
+    while (std::getline(fin, intmp))
     {
         istringstream sin(intmp);
         string cuf;
 
         int ID;
         const char *cuf1 = cuf.data();
-        getline(sin, cuf, ',');
+        std::getline(sin, cuf, ',');
         ID = atoi(cuf1);
 
-        getline(sin, cuf, ',');
+        std::getline(sin, cuf, ',');
 
-        getline(sin, cuf, ',');
+        std::getline(sin, cuf, ',');
 
-        getline(sin, cuf, ',');
+        std::getline(sin, cuf, ',');
 
         int startPlace;
-        getline(sin, cuf, ',');
+        std::getline(sin, cuf, ',');
 
         cuf1 = cuf.data();
         startPlace = atoi(cuf1);
 
         int endPlace;
-        getline(sin, cuf, ',');
+        std::getline(sin, cuf, ',');
         cuf1 = cuf.data();
         endPlace = atoi(cuf1);
 
         int startTimes = 0;
-        getline(sin, cuf, ',');
+        std::getline(sin, cuf, ',');
 
         startTimes += (cuf[2] - '5') * 24 * 60;
         if (cuf[10] == ':')
@@ -1007,7 +1053,7 @@ int main()
         }
 
         int endTimes = 0;
-        getline(sin, cuf, ',');
+        std::getline(sin, cuf, ',');
 
         endTimes += (cuf[2] - '5') * 24 * 60;
         if (cuf[10] == ':')
@@ -1024,15 +1070,15 @@ int main()
             endTimes += (cuf[13] - '0');
         }
 
-        getline(sin, cuf, ',');
+        std::getline(sin, cuf, ',');
 
         int model = 0;
-        getline(sin, cuf, ',');
+        std::getline(sin, cuf, ',');
         cuf1 = cuf.data();
         model = atoi(cuf1);
 
         int fee = 0;
-        getline(sin, cuf, ',');
+        std::getline(sin, cuf, ',');
         cuf1 = cuf.data();
         fee = atoi(cuf1);
 
@@ -1074,169 +1120,186 @@ int main()
         edge1[startPlace][endPlace] = temp3;
     }
     ofstream();
+    // digkstra(28, 74, 4, 1, 0, 100000); // 2.5.1
     int model1, minimodel, arg1, arg2, arg3, arg4;
+    int tempc = INT_MAX;
     string timestring1, timestring2, temp;
-    cin >> model1;
+    std::cin >> model1;
     switch (model1)
     {
     case 1:
-        cin >> arg1;
+        std::cin >> arg1;
         graph.bfs_g(arg1);
         sort(answerTable.begin(), answerTable.end(), cmp1);
         for (auto i = answerTable.begin(); i != answerTable.end(); i++) // 2.1
         {
-            cout << *i << ' ';
+            std::cout << *i << ' ';
         }
-        cout << endl;
+        std::cout << endl;
         graph.dfs(arg1);
         sort(answerTable.begin(), answerTable.end(), cmp1);
         for (auto i = answerTable.begin(); i != answerTable.end(); i++) // 2.1
         {
-            cout << *i << ' ';
+            std::cout << *i << ' ';
         }
-        cout << endl;
+        std::cout << endl;
         break;
     case 2:
+        cin >> arg1;
         for (int i = 1; i < NumOfVer - 1; i++)
         {
             for (int j = 1; j < NumOfVer - 1; j++) // 2.2
             {
                 graph.reset();
-                graph.BFS1(i, j);
+                tempc = graph.BFS1(i, j);
+                if (arg1 == -1 && tempc != INT_MAX)
+                {
+                    cout << "1 ";
+                }
+                else if (tempc <= arg1)
+                {
+                    cout << "1 ";
+                }
+                else
+                    cout << "0 ";
             }
-            cout << endl;
+            std::cout << endl;
         }
         break;
     case 3:
-        cin >> arg1 >> arg2 >> arg3;
+        std::cin >> arg1 >> arg2 >> arg3;
         graph.DFS1(arg1, arg2, arg3); // 2.3
-        cout << cnt << endl;
+        std::cout << cnt << endl;
         break;
     case 4:
-        cin >> arg1 >> arg2;
-        graph.digkstra(1, 11); // 2.4
+        std::cin >> arg1 >> arg2;
+        graph.digkstra(arg1, arg2); // 2.4
         break;
     case 5:
-        cin >> minimodel;
+        std::cin >> minimodel;
         if (minimodel == 1)
         {
             hasAnswer = false;
-            cin >> arg1 >> arg2 >> arg3;
-            cin >> timestring1 >> temp;
+            std::cin >> arg1 >> arg2 >> arg3;
+            std::cin >> timestring1 >> temp;
             timestring1 += ' ';
             timestring1 += temp;
-            cin >> timestring2 >> temp;
+            std::cin >> timestring2 >> temp;
             timestring2 += ' ';
             timestring2 += temp;
             digkstra(arg1, arg2, arg3, 1, str2time(timestring1), str2time(timestring2)); // 2.5.1
             if (hasAnswer == false)
             {
-                cout << "-1" << endl;
+                std::cout << "-1" << endl;
             }
         }
         else if (minimodel == 2)
         {
             hasAnswer = false;
-            cin >> arg1 >> arg2 >> arg3;
-            cin >> timestring1 >> temp;
+            std::cin >> arg1 >> arg2 >> arg3;
+            std::cin >> timestring1 >> temp;
             timestring1 += ' ';
             timestring1 += temp;
-            cin >> timestring2 >> temp;
+            std::cin >> timestring2 >> temp;
             timestring2 += ' ';
             timestring2 += temp;
             digkstra(arg1, arg2, arg3, 2, str2time(timestring1), str2time(timestring2)); // 2.5.1
             if (hasAnswer == false)
             {
-                cout << "-1" << endl;
+                std::cout << "-1" << endl;
             }
         }
         else if (minimodel == 3)
         {
             hasAnswer = false;
-            cin >> arg1 >> arg2 >> arg3 >> arg4;
-            digkstra(arg1, arg2, arg3, 1, arg4); // 2.5.1
+            std::cin >> arg1 >> arg2 >> arg3 >> arg4;
+            digkstra(arg1, arg2, arg3, 3, arg4, 0); // 2.5.3
             if (hasAnswer == false)
             {
-                cout << "-1" << endl;
+                std::cout << "-1" << endl;
             }
         }
         else
         {
-            cout << "wrong in 5!" << endl;
-            exit(-1);
+            std::cout << "wrong in 5!" << endl;
+            std::exit(-1);
         }
         break;
     case 6:
-        cin >> minimodel;
+        std::cin >> minimodel;
         if (minimodel == 1)
         {
             hasAnswer = false;
-            cin >> arg1 >> arg2;
-            cin >> timestring1 >> temp;
+            std::cin >> arg1 >> arg2;
+            std::cin >> timestring1 >> temp;
             timestring1 += ' ';
             timestring1 += temp;
-            cin >> timestring2 >> temp;
+            std::cin >> timestring2 >> temp;
             timestring2 += ' ';
             timestring2 += temp;
             digkstra(arg1, arg2, 1, str2time(timestring1), str2time(timestring2)); // 2.5.1
             if (hasAnswer == false)
             {
-                cout << "-1" << endl;
+                std::cout << "-1" << endl;
             }
         }
         else if (minimodel == 2)
         {
             hasAnswer = false;
-            cin >> arg1 >> arg2;
-            cin >> timestring1 >> temp;
+            std::cin >> arg1 >> arg2;
+            std::cin >> timestring1 >> temp;
             timestring1 += ' ';
             timestring1 += temp;
-            cin >> timestring2 >> temp;
+            std::cin >> timestring2 >> temp;
             timestring2 += ' ';
             timestring2 += temp;
             digkstra(arg1, arg2, 2, str2time(timestring1), str2time(timestring2)); // 2.5.1
             if (hasAnswer == false)
             {
-                cout << "-1" << endl;
+                std::cout << "-1" << endl;
             }
         }
         else if (minimodel == 3)
         {
             hasAnswer = false;
-            cin >> arg1 >> arg2 >> arg3;
-            digkstra(arg1, arg2, 1, arg3); // 2.5.1
+            std::cin >> arg1 >> arg2 >> arg3;
+            digkstra(arg1, arg2, 3, arg3, 0); // 2.5.1
             if (hasAnswer == false)
             {
-                cout << "-1" << endl;
+                std::cout << "-1" << endl;
             }
         }
         else
         {
-            cout << "wrong in 6!" << endl;
-            exit(-1);
+            std::cout << "wrong in 6!" << endl;
+            std::exit(-1);
         }
         break;
     case 7:
-        cin >> arg1 >> arg2 >> arg3 >> arg4;
+        std::cin >> arg1 >> arg2 >> arg3 >> arg4;
         hasAnswer = false;
-        digkstra(arg1, arg2, arg3, arg4);
+        while (!hasAnswer && epsilon <= 100)
+        {
+            digkstra(arg1, arg2, arg3, arg4);
+            epsilon += 1;
+        }
         if (hasAnswer == false)
         {
-            cout << "-1" << endl;
+            std::cout << "-1" << endl;
         }
         break;
     case 8:
-        cin >> arg1 >> arg2 >> arg3;
+        std::cin >> arg1 >> arg2 >> arg3;
         hasAnswer = false;
         digkstra(arg1, arg2, arg3);
         if (hasAnswer == false)
         {
-            cout << "-1" << endl;
+            std::cout << "-1" << endl;
         }
         break;
     default:
-        cout << "wrong in!" << endl;
-        exit(-1);
+        std::cout << "wrong in!" << endl;
+        std::exit(-1);
         break;
     }
     return 0;
