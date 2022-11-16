@@ -1,13 +1,9 @@
+#define checktime // if you want to check the time this programm runs, let it out.
+
 #include <bits/stdc++.h>
 #include <limits>
-#include <stack>
-#include <queue>
-#include <vector>
-#include <stdlib.h>
-#include <algorithm>
 #include <fstream>
 #include <sstream>
-#include <list>
 #define Rank int
 #define NumOfVer 80
 using namespace std;
@@ -592,7 +588,7 @@ void digkstra(int s, int v, int k, int model, int src1, int src2)
             }
             if (j.flightID)
             {
-                Verx[j.endplace][j.endPlace].minTimes = 1;
+                Verx[j.endplace][j.endPlace].minTimes = 0;
                 Verx[j.endplace][j.endPlace].passway.push_back(j.flightID);
                 save1.push(Verx[j.endplace][j.endPlace]);
             }
@@ -778,11 +774,6 @@ void digkstra(int s, int v, int waitTime)
     {
         temp1 = save4.top();
         save4.pop();
-        // if (temp1.place == 49 && temp1.time == 3815)
-        // {
-        //     cout << temp1.waitTime << '|';
-        // }
-        // cout << temp1.place << '|';
         if (temp1.waitTime > waitTime)
         {
             continue;
@@ -801,7 +792,6 @@ void digkstra(int s, int v, int waitTime)
         }
         for (auto i : temp1.edgestart)
         {
-            //  std::cout << temp1.time << "->" << i.endTime << " is " << Verx[i.endplace][i.endPlace].minTimes << '|';
             int temp2 = Verx[i.endplace][i.endPlace].minFee;
             int temp3 = Verx[i.endplace][i.endPlace].waitTime;
             if (i.model == 9)
@@ -893,11 +883,12 @@ void digkstra(int s, int v, int k, int waitTime)
         // std::cout << temp1.minTimes << '|';
         if (temp1.waitTime > waitTime)
             continue;
-        if (temp1.minTimes >= k)
+        if (temp1.minTimes > k)
             continue;
         if (temp1.place == v)
         {
-            // cout << temp1.minTimes << '|';
+            // cout << temp1.waitTime << endl;
+            //  cout << temp1.minTimes << '|';
             hasAnswer = true;
             // cout << epsilon << endl;
             for (int p = 0; p < temp1.passway.size(); p++)
@@ -966,6 +957,10 @@ int str2time(string &cuf)
 
 int main()
 {
+#ifdef checktime
+    clock_t startMain, startCSV = clock(), endCSV;
+#endif
+
     GraphMatrix graph;
     ifstream fin("data.csv");
     // freopen("output.txt", "w", stdout);
@@ -1093,6 +1088,9 @@ int main()
         edge1[startPlace][endPlace] = temp3;
     }
     ofstream();
+#ifdef checktime
+    endCSV = clock();
+#endif
     // digkstra(28, 74, 4, 1, 0, 100000); // 2.5.1
     int model1, minimodel, arg1, arg2, arg3, arg4;
     int tempc = INT_MAX;
@@ -1102,6 +1100,9 @@ int main()
     {
     case 1:
         std::cin >> arg1;
+#ifdef checktime
+        startMain = clock();
+#endif
         graph.bfs_g(arg1);
         sort(answerTable.begin(), answerTable.end(), cmp1);
         for (auto i = answerTable.begin(); i != answerTable.end(); i++) // 2.1
@@ -1119,6 +1120,9 @@ int main()
         break;
     case 2:
         cin >> arg1;
+#ifdef checktime
+        startMain = clock();
+#endif
         for (int i = 1; i < NumOfVer - 1; i++)
         {
             for (int j = 1; j < NumOfVer - 1; j++) // 2.2
@@ -1141,11 +1145,17 @@ int main()
         break;
     case 3:
         std::cin >> arg1 >> arg2 >> arg3;
+#ifdef checktime
+        startMain = clock();
+#endif
         graph.DFS1(arg1, arg2, arg3); // 2.3
         std::cout << cnt << endl;
         break;
     case 4:
         std::cin >> arg1 >> arg2;
+#ifdef checktime
+        startMain = clock();
+#endif
         graph.digkstra(arg1, arg2); // 2.4
         break;
     case 5:
@@ -1160,6 +1170,9 @@ int main()
             std::cin >> timestring2 >> temp;
             timestring2 += ' ';
             timestring2 += temp;
+#ifdef checktime
+            startMain = clock();
+#endif
             digkstra(arg1, arg2, arg3, 1, str2time(timestring1), str2time(timestring2)); // 2.5.1
             if (hasAnswer == false)
             {
@@ -1176,6 +1189,9 @@ int main()
             std::cin >> timestring2 >> temp;
             timestring2 += ' ';
             timestring2 += temp;
+#ifdef checktime
+            startMain = clock();
+#endif
             digkstra(arg1, arg2, arg3, 2, str2time(timestring1), str2time(timestring2)); // 2.5.1
             if (hasAnswer == false)
             {
@@ -1186,6 +1202,9 @@ int main()
         {
             hasAnswer = false;
             std::cin >> arg1 >> arg2 >> arg3 >> arg4;
+#ifdef checktime
+            startMain = clock();
+#endif
             digkstra(arg1, arg2, arg3, 3, arg4, 0); // 2.5.3
             if (hasAnswer == false)
             {
@@ -1210,6 +1229,9 @@ int main()
             std::cin >> timestring2 >> temp;
             timestring2 += ' ';
             timestring2 += temp;
+#ifdef checktime
+            startMain = clock();
+#endif
             digkstra(arg1, arg2, 1, str2time(timestring1), str2time(timestring2)); // 2.5.1
             if (hasAnswer == false)
             {
@@ -1226,6 +1248,9 @@ int main()
             std::cin >> timestring2 >> temp;
             timestring2 += ' ';
             timestring2 += temp;
+#ifdef checktime
+            startMain = clock();
+#endif
             digkstra(arg1, arg2, 2, str2time(timestring1), str2time(timestring2)); // 2.5.1
             if (hasAnswer == false)
             {
@@ -1236,6 +1261,9 @@ int main()
         {
             hasAnswer = false;
             std::cin >> arg1 >> arg2 >> arg3;
+#ifdef checktime
+            startMain = clock();
+#endif
             digkstra(arg1, arg2, 3, arg3, 0); // 2.5.1
             if (hasAnswer == false)
             {
@@ -1251,6 +1279,9 @@ int main()
     case 7:
         std::cin >> arg1 >> arg2 >> arg3 >> arg4;
         hasAnswer = false;
+#ifdef checktime
+        startMain = clock();
+#endif
         digkstra(arg1, arg2, arg3, arg4);
         if (hasAnswer == false)
         {
@@ -1260,6 +1291,9 @@ int main()
     case 8:
         std::cin >> arg1 >> arg2 >> arg3;
         hasAnswer = false;
+#ifdef checktime
+        startMain = clock();
+#endif
         digkstra(arg1, arg2, arg3);
         if (hasAnswer == false)
         {
@@ -1271,5 +1305,10 @@ int main()
         std::exit(-1);
         break;
     }
+#ifdef checktime
+    clock_t endMain = clock();
+    cout << "read csv time: " << double(endCSV - startCSV) / CLOCKS_PER_SEC << endl;
+    cout << "calculte time: " << double(endMain - startMain) / CLOCKS_PER_SEC << endl;
+#endif
     return 0;
 }
