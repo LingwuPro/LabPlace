@@ -309,7 +309,10 @@ int main()
             cout << ans << endl;
             break;
         case 4:
-            ans = atree.rankFindNode(atree.root, num)->value;
+            if (atree.root)
+                ans = atree.rankFindNode(atree.root, num)->value;
+            else
+                ans = -1;
             cout << ans << endl;
             break;
         case 5:
