@@ -1,0 +1,6 @@
+calculte time: 3.488
+calculte time: 10.667
+calculte time: 21.138
+calculte time: 27.86
+calculte time: 29.196
+calculte time: 15.904
